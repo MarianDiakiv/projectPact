@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+    <link rel="stylesheet" href="angularjs-1.6.9-dist/css/w3.css" >
+        <script src="angularjs-1.6.9-dist/js/angular.min.js" ></script>
+
+    <!-- Bootstrap 4  -->
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+    <meta charset="UTF-8">
+    <title>Меблі </title>
+</head>
+<body>
+<div ng-app = "furnitureApp" ng-controller="furnitureContriller" >
+    <div class="container-fluid">
+        <div class="row">
+            <nav class="navbar navbar-expand-sm bg-primary navbar-dark fixed-top">
+                <ul class="navbar-nav">
+                    <li class="nav-item active">
+                        <a class="nav-link" href="/home">Дім</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link " href="/courpsInfo">Корпус</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link " href="/storageInfo">Склад</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/cabinetsInfo">Кабінети</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/electronicInfo">Електроніка</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link " href="/furnitureInfo">Меблі</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link " href="/otherDeviceInfo">Інші пристрої </a>
+                    </li>
+                </ul>
+            </nav>
+
+        </div>
+        <div class="row" style="margin-top: 60px;" >
+            <div class="col-sm-2" ></div>
+            <div class="col-sm-4" >
+                <label>ID {{furniture.id}}</label><br>
+                <label>тип</label><br>
+                <label>розмір</label><br>
+                <label>опис</label><br>
+                <label>id складу</label><br>
+                <label>id кабінету</label><br>
+            </div>
+            <div class="col-sm-4" >
+                <br>
+                <input type="text"  ng-model="furniture.type" ><br>
+                <input type="text"  ng-model="furniture.size" ><br>
+                <input type="text"  ng-model="furniture.description" ><br>
+                <input type="text"  ng-model="furniture.idStorage" ><br>
+                <input type="text"  ng-model="furniture.idCabinet" ><br>
+                <input  class="btn btn-success" style="align-items: center" type="submit"  value="відправити"  ng-click="submit()">
+
+            </div>
+            <div class="col-sm-2" ></div>
+
+        </div>
+        <div class="row" style="margin-top: 60px;" >
+            <div class="col-sm-8">
+                <table class="table table-bordered">
+                    <tr>
+                        <th>Id</th>
+                        <th>Тип</th>
+                        <th>Розмір</th>
+                        <th>Опис</th>
+                        <th>Склад</th>
+                        <th>Id кабінету</th>
+                        <th>Редагувати</th>
+                    </tr>
+                    <tr ng-repeat="items in furnitures | orderBy:'idCabinet'" >
+                        <td>{{items.id}}</td>
+                        <td>{{items.type}}</td>
+                        <td>{{items.size}}</td>
+                        <td>{{items.description}}</td>
+                        <td>{{items.idStorage}}</td>
+                        <td>{{items.idCabinet}}</td>
+                        <td><a class="btn btn-info" ng-click = "edit(items)" >Редагувати</a></td>
+                    </tr>
+                </table>
+            </div>
+            <div class="col-sm-4" >
+                <table class="table table-sm table-info">
+                    <tr>
+                        <th> ID </th>
+                        <th> номер </th>
+                        <th> назва </th>
+                        <th> № корпусу </th>
+                        <th> Переглянути </th>
+                    </tr>
+                    <tr ng-repeat="cab in cabinets | orderBy: 'idCorps'">
+                        <td>{{cab.id}}</td>
+                        <td>{{cab.number}}</td>
+                        <td>{{cab.title}}</td>
+                        <td>{{cab.idCorps}}</td>
+                        <td><a class="btn btn-link" ng-click="showElementById(cab)"  >Переглянути </a></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+</body>
+<script>
+    var app  = angular.module("furnitureApp",[]);
+    app.controller("furnitureContriller", function ($scope, $http) {
+        $scope.furnitures=[];
+        $scope.cabinets=[];
+        $scope.furniture ={
+            id: 0,
+            size: "",
+            type: "",
+            description: "",
+            idCabinet: 1,
+            idStorage: 1,
+        };
+
+        refreshData();
+        getCabinets();
+        function refreshData() {
+            $http({
+                method: 'GET',
+                url: '/showAllFurniture'
+            }).then(function (res) {
+                $scope.furnitures = res.data;
+            },function (res) {
+                console.log("error + " + res.status + " " + res.data);
+            });
+        };
+        function getCabinets() {
+            $http({
+                method:'GET',
+                url:'/showAllCabinets'
+            }).then(function (res) {
+                $scope.cabinets = res.data;
+            },function (res) {
+                console.log("error + " + res.status + " " + res.data);
+            });
+        };
+
+        $scope.showElementById = function(cab){
+
+            $http({
+                method: "GET",
+                url: '/showElementsByIDCabinetsFurniture/'+cab.id,
+
+            }).then(function (res) {
+                $scope.furnitures = res.data;
+            },function (res) {
+                console.log("error + " + res.status + " "+ res.data);
+            });
+        };
+
+
+        $scope.edit = function (items) {
+            $scope.furniture.id = items.id;
+            $scope.furniture.size = items.size;
+            $scope.furniture.type = items.type;
+            $scope.furniture.description = items.description;
+            $scope.furniture.idStorage = items.idStorage;
+            $scope.furniture.idCabinet = items.idCabinet;
+        };
+
+        $scope.submit = function () {
+            var method="";
+            var url = "";
+            if ($scope.furniture.id==0){
+                method="POST";
+                url="/saveFurniture";
+            } else {
+                method="PUT";
+                url="/updateFurniture";
+            }
+            $http({
+                method: method,
+                url: url,
+                data: angular.toJson($scope.furniture),
+                headers:{
+                    'Content-Type': 'application/json'
+                }
+            }).then(success,error);
+        };
+
+
+
+
+
+        function success() {
+            refreshData();
+            clearFormData();
+        }
+        function error(res){
+            var data = res.data;
+            var status = res.status;
+            // var header = res.header;
+            // var config = res.config;
+            alert("Error: " + status + ":" + data );
+        };
+        function clearFormData() {
+            $scope.furniture ={
+                id: 0,
+                size: "",
+                type: "",
+                description: "",
+                idCabinet: 1,
+                idStorage: 1,
+            };
+        };
+
+    });
+</script>
+</html>

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>інше</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+
+    <!-- Bootstrap 4  -->
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+</head>
+<body>
+<div ng-app="OtherApp"  ng-controller="OtherController" class="container-fluid">
+    <div class="row" >
+        <nav class="navbar navbar-expand-sm bg-primary navbar-dark fixed-top">
+            <ul class="navbar-nav">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/home">Дім</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link " href="/courpsInfo">Корпус</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link " href="/storageInfo">Склад</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/cabinetsInfo">Кабінети</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/electronicInfo">Електроніка</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link " href="/furnitureInfo">Меблі</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link " href="/otherDeviceInfo">Інші пристрої </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+    <div class="row" style="margin-top: 60px;">
+        <div class="col-sm-2" ></div>
+        <div class="col-sm-4" >
+            <label>Id {{otherDevice.id}}</label><BR>
+            <label>Тип</label><br>
+            <label>Назва</label><br>
+            <LABEL>Опис</LABEL><br>
+            <LABEL>Кількість</LABEL><br>
+            <label>ID Складу</label><br>
+        </div>
+        <div class="col-sm-4" >
+            <br>
+            <input type="text" ng-model="otherDevice.type" ><br>
+            <input type="text" ng-model="otherDevice.name" ><br>
+            <input type="text" ng-model="otherDevice.description" ><br>
+            <input type="text" ng-model="otherDevice.count" ><br>
+            <input type="text" ng-model="otherDevice.idStorage" ><br>
+            <input class="btn btn-success" ng-click="submit()" type="submit"  ><br>
+        </div>
+        <div class="col-sm-2" ></div>
+    </div>
+    <div class="row " style="margin-top: 60px;" >
+        <div class="col-sm-8" >
+            <table class="table table-bordered" >
+                <tr>
+                    <th> ID</th>
+                    <th>Тип</th>
+                    <th>Назва</th>
+                    <th>Опис</th>
+                    <th>Кількість</th>
+                    <th>ID Складу</th>
+                    <th>Редагувати</th>
+                </tr>
+                <tr ng-repeat="other in otherDevices" >
+                    <td>{{other.id}}</td>
+                    <td>{{other.type}}</td>
+                    <td>{{other.name}}</td>
+                    <td>{{other.description}}</td>
+                    <td>{{other.count}}</td>
+                    <td>{{other.idStorage}}</td>
+                    <td><a class="btn btn-info" ng-click = "edit(other)">Редагувати</a></td>
+                </tr>
+            </table>
+        </div>
+        <div  class="col-sm-4" >
+            <table class="table table-bordered">
+                <tr>
+                    <th>ID складу</th>
+                    <th> № корпусу</th>
+                    <th>Перегляд</th>
+                </tr>
+                <tr ng-repeat="st in storages" >
+                    <td>{{st.id}}</td>
+                    <td>{{st.idCourps}}</td>
+                    <td><a class=" btn btn-link" ng-click="showDevByIdStorage(st)" >Перегляд</a></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+<script>
+    var app = angular.module("OtherApp",[]);
+    app.controller("OtherController", function ($scope,$http) {
+        $scope.otherDevices=[];
+        $scope.storages=[];
+        $scope.otherDevice = {
+            id: 0,
+            type: "",
+            name: "",
+            description: "",
+            count: 0,
+            idStorage: 0
+        };
+        refreshData();
+        getStorages();
+        function refreshData() {
+            $http({
+                method:'GET',
+                url:'/showAllOtherDevice'
+            }).then(function (res) {
+                $scope.otherDevices = res.data;
+            },function (res) {
+                console.log("ERRROR" + res.status+" "+ res.data);
+            });
+        };
+        $scope.submit = function () {
+            var method="";
+            var url = "";
+            if ($scope.otherDevice.id==0){
+                method="POST";
+                url="/saveOtherDevices";
+            } else {
+                method="PUT";
+                url="/updateOtherDevices";
+            }
+            $http({
+                method: method,
+                url: url,
+                data: angular.toJson($scope.otherDevice),
+                headers:{
+                    'Content-Type': 'application/json'
+                }
+            }).then(success,error);
+        };
+
+        $scope.edit = function (other) {
+            $scope.otherDevice.id = other.id;
+            $scope.otherDevice.type = other.type;
+            $scope.otherDevice.name = other.name;
+            $scope.otherDevice.description = other.description;
+            $scope.otherDevice.count = other.count;
+            $scope.otherDevice.idStorage = other.idStorage;
+
+        };
+        $scope.showDevByIdStorage = function (st) {
+            $http({
+                method: "GET",
+                url: '/selectAllDevByIdStorage/'+st.id,
+
+            }).then(function (res) {
+                $scope.electronics = res.data;
+            },function (res) {
+                console.log("error + " + res.status + " "+ res.data);
+            });
+        }
+
+        function success() {
+            refreshData();
+            clearFormData();
+        }
+        function error(res){
+            var data = res.data;
+            var status = res.status;
+            // var header = res.header;
+            // var config = res.config;
+            alert("Error: " + status + ":" + data );
+        };
+        function clearFormData() {
+            $scope.otherDevice = {
+                id: 0,
+                type: "",
+                name: "",
+                description: "",
+                count: 0,
+                idStorage: 0
+            };
+        };
+        function getStorages() {
+            $http({
+                method:'GET',
+                url:'/showAllStorage'
+            }).then(function (res) {
+                $scope.storages = res.data;
+            },function (res) {
+                console.log("ERRROR" + res.status+" "+ res.data);
+            });
+
+        }
+
+    });
+</script>
+</html>
